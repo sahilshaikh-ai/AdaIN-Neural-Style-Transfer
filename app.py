@@ -1,4 +1,5 @@
 import os
+import pathlib as path
 import torch
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_wtf import FlaskForm
@@ -14,6 +15,10 @@ import io
 from utils.models import VGGEncoder, Decoder
 from utils.utils import adaptive_instance_normalization, calc_mean_std
 
+BASE_DIR = Path(__file__).resolve().parent
+
+VGG_PATH = BASE_DIR / "vgg_normalised.pth"
+DECODER_PATH = BASE_DIR / "weights" / "decoder_final.pth"
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'supersecretkey'
@@ -36,13 +41,8 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 encoder = VGGEncoder('vgg_normalised.pth').to(device)
 decoder = Decoder().to(device)
 
-decoder.load_state_dict(
-    torch.load(
-        'D:/PROJECTS/Neural Style Transfer/NST_CODE/weights/decoder_final.pth',
-        map_location=torch.device('cpu'),
-        weights_only=True
-    )
-)
+decoder_checkpoint = torch.load(DECODER_PATH, map_location=torch.device('cpu'), weights_only=True)
+decoder.load_state_dict()
 encoder.eval()
 decoder.eval()
 
