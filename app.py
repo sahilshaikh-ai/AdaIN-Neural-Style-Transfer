@@ -1,5 +1,5 @@
 import os
-import pathlib as Path
+import pathlib 
 import torch
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_wtf import FlaskForm
@@ -15,7 +15,7 @@ import io
 from utils.models import VGGEncoder, Decoder
 from utils.utils import adaptive_instance_normalization, calc_mean_std
 
-BASE_DIR = Path(__file__).resolve().parent
+BASE_DIR = pathlib.Path(__file__).resolve().parent
 
 VGG_PATH = BASE_DIR / "vgg_normalised.pth"
 DECODER_PATH = BASE_DIR / "weights" / "decoder_final.pth"
@@ -38,11 +38,20 @@ class UploadForm(FlaskForm):
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-encoder = VGGEncoder('vgg_normalised.pth').to(device)
+if not VGG_PATH.is_file():
+    raise FileNotFoundError(f"VGG weights not found: {VGG_PATH}")
+
+if not DECODER_PATH.is_file():
+    raise FileNotFoundError(f"Decoder weights not found: {DECODER_PATH}")
+
+
+encoder = VGGEncoder(str(VGG_PATH)).to(device)
 decoder = Decoder().to(device)
 
-decoder_checkpoint = torch.load(DECODER_PATH, map_location=torch.device('cpu'), weights_only=True)
-decoder.load_state_dict()
+decoder_checkpoint = torch.load(DECODER_PATH, map_location=device, weights_only=True)
+decoder.load_state_dict(decoder_checkpoint)
+
+# Set models to evaluation mode
 encoder.eval()
 decoder.eval()
 
