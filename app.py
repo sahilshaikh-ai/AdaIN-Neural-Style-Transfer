@@ -1,5 +1,5 @@
 import os
-import pathlib as path
+import pathlib as Path
 import torch
 from flask import Flask, render_template, request, redirect, url_for, send_from_directory
 from flask_wtf import FlaskForm
